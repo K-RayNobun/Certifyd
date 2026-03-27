@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { GlobalHeader } from "../../components/GlobalHeader";
 
 type FAQItem = {
@@ -62,18 +62,24 @@ const faqData: FAQItem[] = [
 ];
 
 export const FAQPage = () => {
-
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<FAQItem["category"]>("General");
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasCopied, setHasCopied] = useState<number | null>(null);
 
   const filteredFaqs = faqData.filter(f => 
     (searchQuery === "" || f.question.toLowerCase().includes(searchQuery.toLowerCase()) || f.answer.toLowerCase().includes(searchQuery.toLowerCase())) &&
     (searchQuery !== "" || f.category === activeTab)
   );
 
+  const handleCopy = (idx: number) => {
+     setHasCopied(idx);
+     setTimeout(() => setHasCopied(null), 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-Outfit selection:bg-[#0066FF] selection:text-white">
       {/* 1. PREMIUM HEADER */}
       <GlobalHeader />
 
@@ -81,13 +87,13 @@ export const FAQPage = () => {
       <section className="pt-24 pb-16 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#0066FF] blur-[220px] opacity-[0.03] rounded-full"></div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-           <p className="text-[#0066FF] font-black text-[12px] uppercase tracking-[8px] mb-8 reveal">Documentation & Support</p>
-           <h1 className="text-6xl md:text-8xl font-black text-[#0A2540] mb-12 tracking-tighter leading-[0.9] reveal" style={{ animationDelay: '0.1s' }}>
+           <p className="text-[#0066FF] font-black text-[12px] uppercase tracking-[8px] mb-8">Documentation & Support</p>
+           <h1 className="text-6xl md:text-8xl font-black text-[#0A2540] mb-12 tracking-tighter leading-[0.9]">
              How can we <br />
              <span className="text-gradient">Help?</span>
            </h1>
            
-           <div className="relative group max-w-2xl mx-auto reveal" style={{ animationDelay: '0.2s' }}>
+           <div className="relative group max-w-2xl mx-auto">
               <div className="absolute inset-x-[-15px] inset-y-[-15px] bg-blue-600/10 blur-3xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
               <div className="relative flex items-center bg-white rounded-[32px] border-2 border-blue-50 shadow-3xl p-3 focus-within:border-[#0066FF] transition-all">
                 <span className="pl-6 text-2xl">🔍</span>
@@ -136,7 +142,7 @@ export const FAQPage = () => {
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#0066FF] blur-3xl opacity-10"></div>
               <h4 className="text-xl font-black text-[#0A2540] mb-4">Direct Support.</h4>
               <p className="text-gray-500 font-medium text-sm mb-10 leading-relaxed">Our protocol engineers are available for technical integration calls.</p>
-              <button className="w-full py-5 bg-white border-2 border-blue-100/50 rounded-2xl font-black text-[10px] tracking-[4px] uppercase text-[#0066FF] hover:bg-[#0066FF] hover:text-white transition-all shadow-sm">Schedule Call</button>
+              <button onClick={() => alert('Support Protocol Initiation Status: 200 OK. Connecting to Engineer...')} className="w-full py-5 bg-white border-2 border-blue-100/50 rounded-2xl font-black text-[10px] tracking-[4px] uppercase text-[#0066FF] hover:bg-[#0066FF] hover:text-white transition-all shadow-sm">Schedule Call</button>
            </div>
         </aside>
 
@@ -177,8 +183,10 @@ export const FAQPage = () => {
                             {faq.answer}
                           </p>
                           <div className="mt-12 flex items-center gap-6">
-                             <button className="text-[10px] font-black text-[#0066FF] border-b-2 border-blue-100 pb-1 tracking-[4px] uppercase hover:border-[#0066FF] transition-all">Copy Direct Link</button>
-                             <button className="text-[10px] font-black text-gray-400 border-b-2 border-transparent pb-1 tracking-[4px] uppercase hover:text-[#0A2540] transition-all">Report Issue</button>
+                             <button onClick={() => handleCopy(idx)} className="text-[10px] font-black text-[#0066FF] border-b-2 border-blue-100 pb-1 tracking-[4px] uppercase hover:border-[#0066FF] transition-all">
+                                {hasCopied === idx ? 'Copied to Ledger' : 'Copy Direct Link'}
+                             </button>
+                             <button onClick={() => alert('Issue reported to Governance Registry.')} className="text-[10px] font-black text-gray-400 border-b-2 border-transparent pb-1 tracking-[4px] uppercase hover:text-[#0A2540] transition-all">Report Issue</button>
                           </div>
                        </div>
                     </div>
@@ -193,7 +201,7 @@ export const FAQPage = () => {
               )}
            </div>
         </div>
-      </main>
+      </aside>
 
       {/* 4. FOOTER CTA */}
       <section className="max-w-7xl mx-auto px-6 py-40">
@@ -204,8 +212,8 @@ export const FAQPage = () => {
                <p className="text-blue-100/50 font-medium text-lg">Our community of over 50,000 members is active on Discord.</p>
             </div>
             <div className="relative z-10 flex flex-col sm:flex-row gap-6">
-               <button className="btn-primary !bg-[#0066FF] !py-6 !px-16 shadow-4xl hover:!bg-white hover:!text-black">Join Discord</button>
-               <button className="btn-primary !bg-white/5 !text-white border border-white/10 !py-6 !px-16 hover:!bg-white/10">Email Protocol Team</button>
+               <button onClick={() => window.open('https://discord.gg', '_blank')} className="btn-primary !bg-[#0066FF] !py-6 !px-16 shadow-4xl hover:!bg-white hover:!text-black uppercase">Join Discord</button>
+               <button onClick={() => window.location.href = 'mailto:protocol@certifyd.xyz'} className="btn-primary !bg-white/5 !text-white border border-white/10 !py-6 !px-16 hover:!bg-white/10 uppercase">Email Protocol Team</button>
             </div>
          </div>
       </section>
