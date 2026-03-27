@@ -1,6 +1,25 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import asset from "../../assets/academic_hero.png";
 
 export const Layout = () => {
+  const navigate = useNavigate();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSent, setNewsletterSent] = useState(false);
+
+  const handleNewsletter = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newsletterEmail.trim()) {
+      setNewsletterSent(true);
+      setNewsletterEmail("");
+      setTimeout(() => setNewsletterSent(false), 4000);
+    }
+  };
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-12 space-y-40 pb-40">
       
@@ -11,7 +30,7 @@ export const Layout = () => {
             <h2 className="text-5xl font-black mb-4 tracking-tighter text-[#0A2540]">The Logic of <span className="text-[#0066FF]">Trust.</span></h2>
             <p className="text-xl text-gray-500 font-medium">We replaced manual, expensive background checks with cryptographic math.</p>
           </div>
-          <button className="pill-badge pill-badge-premium border-blue-100 bg-blue-50/50 hover:bg-[#0066FF] hover:text-white transition-all py-4 px-10 !h-auto">Explore Protocol &rarr;</button>
+          <button onClick={() => scrollTo('onboarding')} className="pill-badge pill-badge-premium border-blue-100 bg-blue-50/50 hover:bg-[#0066FF] hover:text-white transition-all py-4 px-10 !h-auto">Explore Protocol &rarr;</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -54,13 +73,14 @@ export const Layout = () => {
              </div>
           </div>
 
-          <div className="card-nft p-8 bg-white border-2 border-blue-50/50 hover:border-[#0066FF] transition-all shadow-2xl">
+          <div onClick={() => navigate('/student')} className="card-nft p-8 bg-white border-2 border-blue-50/50 hover:border-[#0066FF] transition-all shadow-2xl cursor-pointer group">
             <div className="h-64 mb-8 relative bg-blue-50/40 rounded-[32px] flex items-center justify-center gap-6">
                <div className="w-20 h-20 rounded-[32px] bg-[#0066FF] flex items-center justify-center text-white font-black text-4xl shadow-3xl">in</div>
                <div className="w-20 h-20 rounded-[32px] bg-black flex items-center justify-center text-white font-black text-4xl shadow-3xl">𝕏</div>
             </div>
             <h3 className="text-2xl font-black mb-4 text-[#0A2540]">Social Sovereignty</h3>
             <p className="text-gray-500 font-medium leading-relaxed">Attach soulbound credentials directly to your global talent profiles.</p>
+            <p className="text-[10px] font-black text-[#0066FF] uppercase tracking-widest mt-6 group-hover:underline">Learn More →</p>
           </div>
         </div>
       </section>
@@ -72,7 +92,7 @@ export const Layout = () => {
             <div className="lg:w-1/3">
                <h2 className="text-6xl font-black mb-8 leading-[0.9] tracking-tighter text-[#0A2540]">Join the <br /><span className="text-[#0066FF]">Consortium.</span></h2>
                <p className="text-xl text-gray-500 font-medium mb-12">Empowering institutions to bridge the trust gap with effortless onboarding.</p>
-               <button className="btn-primary !py-5 !px-16 shadow-[0_20px_40px_rgba(0,102,255,0.25)] !bg-[#0066FF]">Partner &rarr;</button>
+               <button onClick={() => navigate('/university')} className="btn-primary !py-5 !px-16 shadow-[0_20px_40px_rgba(0,102,255,0.25)] !bg-[#0066FF]">Partner &rarr;</button>
             </div>
             <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-16">
                <div className="relative group">
@@ -123,10 +143,10 @@ export const Layout = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {/* Certificate 1 */}
-          <div className="card-nft p-4 bg-white border-2 border-blue-50/50 hover:border-[#0066FF] transition-all shadow-3xl">
+          <div onClick={() => navigate('/login')} className="card-nft p-4 bg-white border-2 border-blue-50/50 hover:border-[#0066FF] transition-all shadow-3xl cursor-pointer group">
             <div className="h-72 bg-blue-50/40 rounded-[32px] mb-8 relative flex items-center justify-center overflow-hidden">
                <div className="absolute top-6 left-6 pill-badge bg-white shadow-xl text-[#0066FF] z-10 font-black text-[10px] !py-2 !px-5">🏛️ UNIVERSITY</div>
-               <img src={asset} alt="Cert" className="h-[80%] object-contain relative z-10 filter drop-shadow-2xl" />
+               <img src={asset} alt="Cert" className="h-[80%] object-contain relative z-10 filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="px-4 pb-4">
                <h3 className="text-2xl font-black mb-2 text-[#0A2540]">Computer Science</h3>
@@ -155,16 +175,16 @@ export const Layout = () => {
              <div className="px-4 pb-4">
                 <h3 className="text-2xl font-black mb-2 tracking-tight">Applied Cryptography</h3>
                 <p className="text-sm font-bold text-blue-300 opacity-50 mb-8 tracking-wider italic">Certifyd Labs • Platinum Badge</p>
-                <button className="w-full py-5 bg-[#0066FF] rounded-2xl font-black text-xs tracking-[5px] uppercase shadow-2xl hover:bg-white hover:text-black transition-all">Verify Now</button>
+                <button onClick={() => navigate('/student')} className="w-full py-5 bg-[#0066FF] rounded-2xl font-black text-xs tracking-[5px] uppercase shadow-2xl hover:bg-white hover:text-black transition-all">Learn More</button>
              </div>
           </div>
 
-          {/* Empty State */}
-          <div className="card-nft p-12 bg-white border-4 border-dashed border-blue-100 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 transition-colors">
-             <div className="w-24 h-24 rounded-[40px] bg-white shadow-3xl text-[#0066FF] text-4xl font-black flex items-center justify-center mb-10 hover:rotate-12 transition-transform cursor-pointer">+</div>
+          {/* Empty State / CTA */}
+          <div onClick={() => navigate('/signup')} className="card-nft p-12 bg-white border-4 border-dashed border-blue-100 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 transition-colors cursor-pointer group">
+             <div className="w-24 h-24 rounded-[40px] bg-white shadow-3xl text-[#0066FF] text-4xl font-black flex items-center justify-center mb-10 group-hover:rotate-12 group-hover:bg-[#0066FF] group-hover:text-white transition-all">+</div>
              <h3 className="text-3xl font-black mb-4 text-[#0A2540]">Partner Registry.</h3>
              <p className="text-gray-400 font-medium mb-10 max-w-[240px]">Be the next to secure your student's future.</p>
-             <button className="pill-badge bg-black text-white px-12 py-4 !h-auto border-none font-black text-[10px] tracking-[4px]">Apply &rarr;</button>
+             <button className="pill-badge bg-black text-white px-12 py-4 !h-auto border-none font-black text-[10px] tracking-[4px] group-hover:bg-[#0066FF] transition-all">Apply &rarr;</button>
           </div>
         </div>
       </section>
@@ -191,7 +211,7 @@ export const Layout = () => {
          </div>
          <div className="flex flex-wrap items-center justify-center gap-16 md:gap-28 relative z-10 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
             {[1,2,3,4,5,6].map((i) => (
-              <div key={i} className="flex flex-col items-center group cursor-pointer group">
+              <div key={i} onClick={() => navigate('/university')} className="flex flex-col items-center group cursor-pointer group">
                  <div className="w-24 h-24 md:w-32 md:h-32 bg-white/5 rounded-[48px] border border-white/5 shadow-2xl flex items-center justify-center mb-8 transition-all duration-700 group-hover:bg-[#0066FF]/20 group-hover:border-[#0066FF]/50 group-hover:-translate-y-6 group-hover:shadow-[0_40px_80px_rgba(0,102,255,0.3)]">
                     <span className="text-5xl text-white group-hover:scale-125 transition-transform">🏛️</span>
                  </div>
@@ -211,8 +231,8 @@ export const Layout = () => {
                <span className="text-gradient">Legacy.</span>
             </h2>
             <div className="flex flex-col sm:flex-row gap-8 justify-center lg:justify-start">
-               <button className="btn-primary !py-7 !px-20 !text-xl !h-auto shadow-4xl !bg-[#0066FF] hover:scale-110 active:scale-95 transition-all">Enter App</button>
-               <button className="text-white font-black flex items-center gap-6 text-sm group tracking-[5px] uppercase">
+               <button onClick={() => navigate('/signup')} className="btn-primary !py-7 !px-20 !text-xl !h-auto shadow-4xl !bg-[#0066FF] hover:scale-110 active:scale-95 transition-all">Enter App</button>
+               <button onClick={() => navigate('/faq')} className="text-white font-black flex items-center gap-6 text-sm group tracking-[5px] uppercase">
                   Documentation 
                   <span className="group-hover:translate-x-6 transition-transform">&rarr;</span>
                </button>
@@ -238,8 +258,8 @@ export const Layout = () => {
 
       <footer className="pt-40 border-t border-blue-50/20 flex flex-col lg:flex-row justify-between items-start gap-24">
          <div className="lg:w-1/3">
-            <div className="flex items-center gap-6 mb-12 group cursor-pointer">
-              <img src="/assets/logo.png" alt="Logo" className="w-16 h-16 group-hover:scale-110 transition-transform" />
+            <div onClick={() => navigate('/')} className="flex items-center gap-6 mb-12 group cursor-pointer">
+              <div className="w-12 h-12 rounded-2xl bg-[#0A2540] flex items-center justify-center font-black text-2xl text-white group-hover:bg-[#0066FF] transition-all">C</div>
               <span className="text-4xl font-black text-[#0A2540] tracking-tighter">Certifyd.</span>
             </div>
             <p className="text-lg text-gray-500 leading-relaxed max-sm font-medium">
@@ -250,28 +270,35 @@ export const Layout = () => {
             <div>
                <h4 className="font-black text-[12px] mb-12 uppercase tracking-[6px] text-[#0066FF]">Infrastructure</h4>
                <ul className="space-y-6 text-lg text-[#0A2540] font-black">
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Mainnet Node Status</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Consortium Ledger</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Developer Portal</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Governance DAO</li>
+                  <li onClick={() => navigate('/university')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Mainnet Node Status</li>
+                  <li onClick={() => navigate('/institution')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Consortium Ledger</li>
+                  <li onClick={() => navigate('/faq')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Developer Portal</li>
+                  <li onClick={() => navigate('/about-us')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Governance DAO</li>
                </ul>
             </div>
             <div>
                <h4 className="font-black text-[12px] mb-12 uppercase tracking-[6px] text-[#0066FF]">Sovereignty</h4>
                <ul className="space-y-6 text-lg text-[#0A2540] font-black">
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Soulbound Privacy</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Identity Rights</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Minting Protocol</li>
-                  <li className="hover:text-[#0066FF] cursor-pointer transition-colors">Whitepaper v2.0</li>
+                  <li onClick={() => navigate('/student')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Soulbound Privacy</li>
+                  <li onClick={() => navigate('/student')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Identity Rights</li>
+                  <li onClick={() => navigate('/university')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Minting Protocol</li>
+                  <li onClick={() => navigate('/faq')} className="hover:text-[#0066FF] cursor-pointer transition-colors">Whitepaper v2.0</li>
                </ul>
             </div>
          </div>
          <div className="w-full lg:w-auto">
             <h4 className="font-black text-[12px] mb-12 uppercase tracking-[6px] text-[#0066FF]">Pulse Registry</h4>
-            <div className="flex items-center bg-[#0A2540]/5 border-2 border-transparent rounded-[32px] p-3 focus-within:border-[#0066FF] focus-within:bg-white transition-all w-full lg:w-[450px] shadow-inner mb-8">
-               <input type="email" placeholder="principal-id@certified.xyz" className="bg-transparent border-none outline-none text-lg px-6 w-full font-black text-[#0A2540] placeholder:text-gray-200" />
-               <button className="w-16 h-16 rounded-[24px] bg-[#0066FF] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#0A2540] transition-all shadow-4xl font-black tracking-widest italic">GO</button>
-            </div>
+            {newsletterSent ? (
+              <div className="flex items-center gap-4 bg-green-50 border-2 border-green-100 rounded-[32px] p-6 mb-8 animate-fade-in">
+                <span className="text-2xl">✅</span>
+                <p className="font-black text-green-700 text-sm">You're on the list! Protocol upgrades incoming.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletter} className="flex items-center bg-[#0A2540]/5 border-2 border-transparent rounded-[32px] p-3 focus-within:border-[#0066FF] focus-within:bg-white transition-all w-full lg:w-[450px] shadow-inner mb-8">
+                 <input type="email" required value={newsletterEmail} onChange={e => setNewsletterEmail(e.target.value)} placeholder="principal-id@certified.xyz" className="bg-transparent border-none outline-none text-lg px-6 w-full font-black text-[#0A2540] placeholder:text-gray-200" />
+                 <button type="submit" className="w-16 h-16 rounded-[24px] bg-[#0066FF] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#0A2540] transition-all shadow-4xl font-black tracking-widest italic">GO</button>
+              </form>
+            )}
             <p className="text-[11px] text-gray-400 font-bold uppercase tracking-[4px] pl-6">No spam. Only essential protocol upgrades.</p>
          </div>
       </footer>

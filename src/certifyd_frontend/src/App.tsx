@@ -23,6 +23,7 @@ function App() {
         <Route path="/university" element={<UniversitiesPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/auth/:id" element={<AuthenticationPage />} />
+        <Route path="/institution" element={<InstitutionDashboardPage />} />
         <Route path="/institution-dashboard" element={<InstitutionDashboardPage />} />
         <Route path="/about-us" element={<AboutUsPage />} />
         <Route path="*" element={<NotFoundPage />} />

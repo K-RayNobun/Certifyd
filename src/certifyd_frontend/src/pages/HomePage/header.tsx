@@ -110,7 +110,7 @@ export const Header = () => {
                            <span className="text-sm font-black text-[#0066FF]">2026-03-27T11:35</span>
                         </div>
                      </div>
-                     <button className="pill-badge bg-black text-white px-10 py-4 !h-auto border-none shadow-xl group-hover:bg-[#0066FF] transition-all">Download Proof PDF</button>
+                      <button onClick={() => navigate('/signup')} className="pill-badge bg-black text-white px-10 py-4 !h-auto border-none shadow-xl group-hover:bg-[#0066FF] transition-all">Get Your Proof →</button>
                   </div>
                   <div className="w-full lg:w-1/2 flex justify-center">
                      <img src={asset} alt="Cert" className="w-[100%] max-w-sm object-contain filter drop-shadow-[0_20px_40px_rgba(0,102,255,0.2)] group-hover:scale-110 transition-transform duration-1000" />
