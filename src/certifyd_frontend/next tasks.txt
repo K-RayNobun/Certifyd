@@ -1,0 +1,11 @@
+ What's next to do:
+
+ - Connect the StudentPage form with main.mo mint function
+ - Test and correct
+ - Push on Github
+ // A diploma is associated to a minted NFT
+ - Produce a QRCode for each diploma
+ - Content for Auth Page
+ - Auth function with QRCode
+ - Test and Debug
+ - Push
