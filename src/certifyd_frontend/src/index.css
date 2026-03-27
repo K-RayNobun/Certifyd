@@ -1,0 +1,172 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-hero-size {
+    font-size: 10rem;
+    line-height: 0.9;
+  }
+  .text-huge {
+    font-size: 12rem;
+    line-height: 0.85;
+  }
+  .shadow-3xl {
+    box-shadow: 0 40px 80px rgba(0, 102, 255, 0.08);
+  }
+  .shadow-4xl {
+    box-shadow: 0 60px 120px rgba(0, 102, 255, 0.12);
+  }
+}
+
+:root {
+  /* Design Reasoning: High Contrast, Airy Whitespace, Vibrant Accents */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFF;
+  --bg-dark: #0A0A0B;
+  
+  --text-dark: #0A2540;
+  --text-muted: #64748B;
+  --text-light: #FFFFFF;
+
+  --accent-primary: #0066FF;
+  --accent-gradient: linear-gradient(135deg, #00C6FF 0%, #0066FF 100%);
+  --accent-glow: rgba(0, 102, 255, 0.3);
+  
+  --shadow-card: 0px 20px 40px rgba(0, 102, 255, 0.04);
+  --shadow-hover: 0px 40px 80px rgba(0, 102, 255, 0.12);
+
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-dark);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Base Typo */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* Thematic Utilities */
+.text-gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0px 10px 30px rgba(0, 102, 255, 0.08);
+  color: var(--text-dark);
+  letter-spacing: 1px;
+}
+
+.pill-badge-premium {
+  background: white;
+  border: 1px solid rgba(0, 102, 255, 0.1);
+  color: var(--accent-primary);
+}
+
+/* Interactive Elements */
+.btn-primary {
+  background: var(--accent-primary);
+  color: white;
+  padding: 18px 40px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-family: 'Clash Display', sans-serif;
+  letter-spacing: 1px;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0px 15px 40px var(--accent-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-5px) scale(1.02);
+  background: var(--text-dark);
+  box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+.btn-dark {
+  background: var(--text-dark);
+  color: white;
+  padding: 18px 40px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-family: 'Clash Display', sans-serif;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0px 15px 40px rgba(0,0,0,0.1);
+}
+
+.btn-dark:hover {
+  background: var(--accent-primary);
+  transform: translateY(-5px);
+  box-shadow: 0px 25px 50px var(--accent-glow);
+}
+
+/* Layout Containers */
+.card-nft {
+  background: white;
+  border-radius: 40px;
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 2px solid transparent;
+}
+
+.card-nft:hover {
+  transform: translateY(-12px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Animations */
+@keyframes slow-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-slow-float {
+  animation: slow-float 6s ease-in-out infinite;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Smooth Image Reveal Hover */
+.group:hover .hover-zoom {
+  transform: scale(1.1);
+}
+.hover-zoom {
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
