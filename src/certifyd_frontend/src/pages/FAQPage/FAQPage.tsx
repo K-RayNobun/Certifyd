@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import { GlobalHeader } from "../../components/GlobalHeader";
 
 type FAQItem = {
   question: string;
@@ -61,7 +62,7 @@ const faqData: FAQItem[] = [
 ];
 
 export const FAQPage = () => {
-  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<FAQItem["category"]>("General");
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,20 +75,7 @@ export const FAQPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* 1. PREMIUM HEADER */}
-      <header className="border-b-2 border-blue-50/50 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => navigate('/')}>
-             <div className="w-12 h-12 rounded-2xl bg-[#0A2540] flex items-center justify-center text-white font-black text-xl group-hover:bg-[#0066FF] transition-all">C</div>
-             <span className="text-2xl font-black tracking-tighter text-[#0A2540]">Certifyd <span className="text-[#0066FF]/40 ml-2 uppercase text-[10px] tracking-[4px]">Help Hub</span></span>
-          </div>
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="pill-badge pill-badge-premium hover:bg-[#0066FF] hover:text-white transition-all py-3 px-8 !h-auto border-2 border-blue-100/50"
-          >
-            &larr; Back to Dashboard
-          </button>
-        </div>
-      </header>
+      <GlobalHeader />
 
       {/* 2. HERO SEARCH */}
       <section className="pt-24 pb-16 px-6 relative overflow-hidden">

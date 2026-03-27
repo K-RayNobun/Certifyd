@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { GlobalHeader } from "../../components/GlobalHeader";
 
 export const AboutUsPage = () => {
   const navigate = useNavigate();
@@ -7,20 +8,7 @@ export const AboutUsPage = () => {
     <div className="min-h-screen bg-white font-Outfit selection:bg-[#0066FF] selection:text-white pb-32">
       
       {/* HEADER / NAVBAR */}
-      <header className="fixed top-0 left-0 w-full h-24 bg-white/80 backdrop-blur-xl z-50 px-8 flex items-center justify-between border-b-2 border-blue-50/50">
-         <div className="flex items-center gap-4 cursor-pointer group" onClick={() => navigate('/')}>
-            <div className="w-12 h-12 rounded-2xl bg-[#0A2540] flex items-center justify-center font-black text-xl text-white group-hover:bg-[#0066FF] transition-all">C</div>
-            <span className="text-2xl font-black tracking-tighter text-[#0A2540]">Certifyd.</span>
-         </div>
-         <nav className="hidden md:flex items-center gap-12 text-[10px] font-black uppercase tracking-[4px] text-gray-400">
-            <button onClick={() => navigate('/')} className="hover:text-[#0066FF] transition-all">Home</button>
-            <button className="text-[#0A2540]">About Us</button>
-            <button onClick={() => navigate('/faq')} className="hover:text-[#0066FF] transition-all">FAQ</button>
-         </nav>
-         <button onClick={() => navigate('/login')} className="pill-badge pill-badge-premium py-3 px-8 !h-auto">
-            Access Portal
-         </button>
-      </header>
+      <GlobalHeader />
 
       {/* 1. HERO SECTION (50-50 Split) */}
       <section className="pt-48 pb-20 px-8 lg:px-24 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">

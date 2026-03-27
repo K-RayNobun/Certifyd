@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import asset from "../../assets/academic_hero.png";
-import logo from "../../assets/logo.png";
+import { GlobalHeader } from "../../components/GlobalHeader";
 
 export const Header = () => {
   const [certId, setCertId] = useState("");
@@ -20,32 +20,8 @@ export const Header = () => {
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-[#0066FF] blur-[180px] opacity-[0.08] rounded-full -z-10 animate-pulse"></div>
       <div className="absolute bottom-0 right-[10%] w-[600px] h-[400px] bg-blue-400 blur-[150px] opacity-[0.05] rounded-full -z-10"></div>
       
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/70 backdrop-blur-2xl border-b border-blue-50/50 py-5">
-        <div className="max-w-[1500px] mx-auto px-6 lg:px-12 flex justify-between items-center">
-          <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
-            <img src={logo} alt="Certifyd Logo" className="h-10 w-auto group-hover:scale-105 transition-transform" />
-            <span className="text-2xl font-black tracking-tighter text-[#0A2540] group-hover:text-[#0066FF] transition-colors">Certifyd</span>
-          </div>
-          
-        <div className="hidden md:flex items-center gap-12 text-[10px] font-black uppercase tracking-[4px] text-[#0A2540]/50">
-          <a href="#features" className="hover:text-[#0066FF] transition-all hover:tracking-[6px]">Protocol</a>
-          <a href="#students" className="hover:text-[#0066FF] transition-all hover:tracking-[6px]">Collections</a>
-          <a href="#onboarding" className="hover:text-[#0066FF] transition-all hover:tracking-[6px]">Consortium</a>
-        </div>
-
-          <div className="flex items-center gap-6">
-            <button onClick={() => navigate('/login')} className="text-xs font-black uppercase tracking-widest text-[#0A2540] hover:text-[#0066FF]">Sign In</button>
-            <button 
-              onClick={() => navigate('/signup')}
-              className="btn-primary !py-3 !px-10 !text-[10px] shadow-2xl !bg-[#0066FF] border-none"
-            >
-              Launch App
-            </button>
-          </div>
-        </div>
-      </nav>
-
+      {/* Universal Navigation */}
+      <GlobalHeader />
       {/* Expanded Hero Section */}
       <div className="text-center max-w-6xl relative z-10 pt-20">
         <div className="mb-12 flex justify-center">
