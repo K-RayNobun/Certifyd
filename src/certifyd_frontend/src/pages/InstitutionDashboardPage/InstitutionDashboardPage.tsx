@@ -39,7 +39,19 @@ export default function InstitutionDashboardPage() {
   const [diplomaFiles, setDiplomaFiles] = useState<{[key: string]: File}>({});
   const [processingId, setProcessingId] = useState<string | null>(null);
 
+  // Batch Mint Form State (matches DiplomaInfo backend schema exactly)
+  const [batchPromotion, setBatchPromotion] = useState('');
+  const [batchClassId, setBatchClassId] = useState('');
+  const [batchDept, setBatchDept] = useState('');
+  const [batchOption, setBatchOption] = useState('');
+  const [batchDiplomaType, setBatchDiplomaType] = useState('');
+  const [batchGradDate, setBatchGradDate] = useState('');
+  const [batchDescription, setBatchDescription] = useState('');
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [batchMinting, setBatchMinting] = useState(false);
+
   const issuer = localStorage.getItem("userEmail") || "";
+  const institutionName = issuer.split('@')[0].toUpperCase() + " University";
 
   useEffect(() => {
     fetchData();
@@ -86,6 +98,87 @@ export default function InstitutionDashboardPage() {
         setProcessingId(null);
       }
     };
+  };
+
+  const handleRevoke = async (nftId: bigint) => {
+    if (!confirm('WARNING: Are you sure you want to permanently revoke this credential? This action is immutable and will lock the record globally.')) return;
+    try {
+      const success = await certifyd_backend.revokeNFT(nftId, issuer);
+      if (success) {
+        alert('Credential Revocation Successful. The record is now permanently frozen.');
+        fetchData();
+      } else {
+        alert('Revocation failed. You may lack sufficient cryptographic privileges.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network transmission error during revocation.');
+    }
+  };
+
+  const handleReject = async (req: DiplomaRequest) => {
+    if (!confirm(`Reject diploma request for ${req.studentName}? This action will notify the student.`)) return;
+    try {
+      const success = await certifyd_backend.rejectRequest(req.id, issuer);
+      if (success) {
+        alert('Request has been rejected and removed from the queue.');
+        fetchData();
+      } else {
+        alert('Rejection failed. Insufficient privileges.');
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Network error during rejection.');
+    }
+  };
+
+  const handleBatchMint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (batchFiles.length === 0) {
+      alert('Please upload at least one student PDF file before minting.');
+      return;
+    }
+    if (!batchClassId || !batchPromotion || !batchDept || !batchDiplomaType) {
+      alert('Please fill all required promotion metadata fields.');
+      return;
+    }
+    setBatchMinting(true);
+    let successCount = 0;
+    for (const file of batchFiles) {
+      // Parse student name from filename: [BatchID]_[Student Name].pdf
+      const namePart = file.name.replace(/\.pdf$/i, '').split('_').slice(1).join(' ');
+      const studentEmail = `${namePart.toLowerCase().replace(/\s+/g, '.')}.student@certifyd.net`;
+      const reader = new FileReader();
+      await new Promise<void>((resolve) => {
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+          const metadata = reader.result as string;
+          const diplomaInfo = {
+            classId: batchClassId,
+            promotion: batchPromotion,
+            institution: institutionName,
+            diplomaType: batchDiplomaType,
+            studentName: namePart || file.name,
+            graduationDate: batchGradDate,
+            description: batchDescription || `${batchDiplomaType} in ${batchDept}${batchOption ? ' - ' + batchOption : ''} — ${batchPromotion}`,
+          };
+          try {
+            await certifyd_backend.mint(studentEmail, metadata, diplomaInfo);
+            successCount++;
+          } catch(err) {
+            console.error(`Failed to mint for ${namePart}:`, err);
+          }
+          resolve();
+        };
+      });
+    }
+    setBatchMinting(false);
+    alert(`Batch minting complete! ${successCount}/${batchFiles.length} credentials successfully secured on the ledger.`);
+    fetchData();
+    // Reset form
+    setBatchFiles([]); setBatchClassId(''); setBatchPromotion('');
+    setBatchDept(''); setBatchOption(''); setBatchDiplomaType('');
+    setBatchGradDate(''); setBatchDescription('');
   };
 
   const logout = () => {
@@ -236,7 +329,7 @@ export default function InstitutionDashboardPage() {
                                <button onClick={() => handleApprove(req)} disabled={processingId === req.id.toString()} className="flex-1 py-5 bg-[#0A2540] hover:bg-[#0066FF] text-white rounded-2xl font-black text-[10px] tracking-[4px] uppercase transition-all shadow-xl">
                                  {processingId === req.id.toString() ? 'Minting...' : 'Approve & Mint'}
                                </button>
-                               <button className="px-6 py-5 bg-white border-2 border-red-50 text-red-500 rounded-2xl font-black hover:bg-red-50 transition-all uppercase text-[10px] tracking-[3px]">✖</button>
+                               <button type="button" onClick={() => handleReject(req)} className="px-6 py-5 bg-white border-2 border-red-50 text-red-500 rounded-2xl font-black hover:bg-red-50 transition-all uppercase text-[10px] tracking-[3px]">✖</button>
                             </div>
                          </div>
                       </div>
@@ -287,14 +380,14 @@ export default function InstitutionDashboardPage() {
 
                         <div className="mt-auto pt-6 border-t border-gray-50">
                            <button 
-                             onClick={() => { if(!nft.isRevoked) alert('Revocation protocol active.') }} 
+                             onClick={() => { if (!nft.isRevoked) handleRevoke(nft.id); }} 
                              className={`w-full py-4 rounded-xl font-black text-[10px] tracking-[4px] uppercase transition-all ${
                                 nft.isRevoked 
                                 ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
                                 : "bg-white border-2 border-red-50 text-red-400 hover:bg-red-50"
                              }`}
                            >
-                             {nft.isRevoked ? "Lock Final" : "Revoke Access"}
+                             {nft.isRevoked ? "Revocation Final" : "Revoke Access"}
                            </button>
                         </div>
                       </div>
@@ -303,7 +396,7 @@ export default function InstitutionDashboardPage() {
                 </section>
               </div>
             ) : activeTab === 'minting' ? (
-              // NEW MINT BATCH TAB
+              // MINT BATCH TAB - Fully Wired
               <div className="space-y-16 animate-fade-in">
                  <div className="flex flex-col xl:flex-row gap-16">
                     {/* Left Side: Form */}
@@ -316,39 +409,52 @@ export default function InstitutionDashboardPage() {
                           </div>
                        </div>
 
-                       <div className="border-4 border-dashed border-gray-200 rounded-[40px] p-20 text-center bg-gray-50/50 hover:bg-white hover:border-[#0066FF] hover:shadow-[0_20px_40px_rgba(0,102,255,0.05)] transition-all group cursor-pointer">
+                       <label className="border-4 border-dashed border-gray-200 rounded-[40px] p-16 text-center bg-gray-50/50 hover:bg-white hover:border-[#0066FF] hover:shadow-[0_20px_40px_rgba(0,102,255,0.05)] transition-all group cursor-pointer block">
+                          <input type="file" accept=".pdf" multiple className="hidden" onChange={e => setBatchFiles(Array.from(e.target.files || []))} />
                           <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center text-4xl mx-auto mb-8 group-hover:-translate-y-3 transition-transform duration-500 border border-gray-100">📥</div>
-                          <h3 className="text-2xl font-black text-[#0A2540] mb-3">Upload Class PDFs</h3>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest max-w-sm mx-auto">Drop files here or click to browse. Max 100 files per single transaction block.</p>
-                       </div>
+                          <h3 className="text-2xl font-black text-[#0A2540] mb-3">{batchFiles.length > 0 ? `${batchFiles.length} PDFs Selected ✓` : 'Upload Class PDFs'}</h3>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest max-w-sm mx-auto">Naming: [BatchID]_[Student Name].pdf. Max 100 files per transaction.</p>
+                       </label>
 
-                       <form className="space-y-8 bg-white p-10 rounded-[40px] border-2 border-gray-50 shadow-[0_20px_40px_rgba(0,0,0,0.02)]">
+                       <form onSubmit={handleBatchMint} className="space-y-8 bg-white p-10 rounded-[40px] border-2 border-gray-50 shadow-[0_20px_40px_rgba(0,0,0,0.02)]">
                           <h4 className="text-2xl font-black text-[#0A2540] font-Clash tracking-tight mb-8">Promotion Metadata</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <div>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Promotion / Year *</label>
-                                <input type="text" placeholder="e.g. Class of 2026" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
+                                <input required type="text" value={batchPromotion} onChange={e => setBatchPromotion(e.target.value)} placeholder="e.g. Class of 2026" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
                              </div>
                              <div>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Global Batch ID *</label>
-                                <input type="text" placeholder="e.g. CS2026-A" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
+                                <input required type="text" value={batchClassId} onChange={e => setBatchClassId(e.target.value)} placeholder="e.g. CS2026-A" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
                              </div>
                           </div>
-                          
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <div>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Department *</label>
-                                <input type="text" placeholder="e.g. Computer Science" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
+                                <input required type="text" value={batchDept} onChange={e => setBatchDept(e.target.value)} placeholder="e.g. Computer Science" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
                              </div>
                              <div>
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Speciality Option *</label>
-                                <input type="text" placeholder="e.g. Software Engineering" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Speciality Option</label>
+                                <input type="text" value={batchOption} onChange={e => setBatchOption(e.target.value)} placeholder="e.g. Software Engineering" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
                              </div>
                           </div>
-
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Degree Type *</label>
+                                <input required type="text" value={batchDiplomaType} onChange={e => setBatchDiplomaType(e.target.value)} placeholder="e.g. B.Sc. Engineering" className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300" />
+                             </div>
+                             <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Graduation Date *</label>
+                                <input required type="date" value={batchGradDate} onChange={e => setBatchGradDate(e.target.value)} className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all text-gray-500" />
+                             </div>
+                          </div>
+                          <div>
+                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-3 block">Description (Optional)</label>
+                             <textarea value={batchDescription} onChange={e => setBatchDescription(e.target.value)} placeholder="Official description of the degree program..." rows={3} className="w-full bg-gray-50 border-2 border-transparent focus:border-[#0066FF] focus:bg-white p-6 rounded-3xl font-bold text-[#0A2540] outline-none transition-all placeholder:text-gray-300 resize-none" />
+                          </div>
                           <div className="pt-6">
-                             <button type="button" className="w-full py-6 bg-[#0066FF] hover:bg-[#0A2540] text-white rounded-[28px] font-black tracking-[4px] uppercase transition-all shadow-2xl active:scale-95 text-xs">
-                                Execute Batch Mint Protocol
+                             <button type="submit" disabled={batchMinting} className="w-full py-6 bg-[#0066FF] hover:bg-[#0A2540] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-[28px] font-black tracking-[4px] uppercase transition-all shadow-2xl active:scale-95 text-xs">
+                                {batchMinting ? `Minting ${batchFiles.length} Records...` : 'Execute Batch Mint Protocol'}
                              </button>
                           </div>
                        </form>
@@ -358,18 +464,15 @@ export default function InstitutionDashboardPage() {
                     <div className="xl:w-1/3 w-full">
                        <div className="card-nft p-10 bg-white border-2 border-blue-50/80 shadow-[0_40px_80px_rgba(0,102,255,0.06)] sticky top-10">
                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center mb-8">Metadata Preview Map</p>
-                          
                           <div className="w-full h-72 bg-gradient-to-br from-blue-50 to-white rounded-[32px] flex items-center justify-center shadow-inner relative overflow-hidden mb-10 border border-gray-100">
-                             <div className="absolute inset-0 opacity-[0.03] before:content-[''] before:absolute before:inset-0" style={{ backgroundImage: 'radial-gradient(#0A2540 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                             <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#0A2540 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                              <div className="absolute w-[200px] h-[200px] bg-[#0066FF] blur-[80px] opacity-20 animate-pulse rounded-full"></div>
-                             <div className="w-32 h-32 bg-white rounded-3xl shadow-2xl flex items-center justify-center text-6xl z-10 rotate-[-5deg] group hover:rotate-0 transition-transform duration-500">🎓</div>
+                             <div className="w-32 h-32 bg-white rounded-3xl shadow-2xl flex items-center justify-center text-6xl z-10">🎓</div>
                           </div>
-
                           <div className="mb-8">
-                             <h3 className="text-3xl font-black text-[#0A2540] tracking-tight mb-2">Class Promotion Node</h3>
-                             <p className="text-gray-400 font-bold text-sm">Bulk Institutional Issuance</p>
+                             <h3 className="text-3xl font-black text-[#0A2540] tracking-tight mb-2">{batchPromotion || 'Class Promotion Node'}</h3>
+                             <p className="text-gray-400 font-bold text-sm">{batchDiplomaType || 'Bulk Institutional Issuance'}</p>
                           </div>
-
                           <div className="space-y-6">
                              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">Est. Network Fee</span>
@@ -377,14 +480,13 @@ export default function InstitutionDashboardPage() {
                              </div>
                              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">Files Ready</span>
-                                <span className="font-bold text-[#0A2540]">0 Detected</span>
+                                <span className={`font-bold ${batchFiles.length > 0 ? 'text-[#0066FF]' : 'text-[#0A2540]'}`}>{batchFiles.length} Detected</span>
                              </div>
-
                              <div className="flex items-center gap-4 pt-4">
                                 <div className="w-12 h-12 bg-[#0A2540] rounded-2xl flex items-center justify-center text-white text-lg font-black shadow-lg">C</div>
                                 <div>
                                    <p className="text-[9px] uppercase font-black tracking-widest text-gray-400">Minting Authority</p>
-                                   <p className="font-bold text-[#0A2540] text-sm truncate max-w-[150px]">{issuer.split('@')[0].toUpperCase()} Reg.</p>
+                                   <p className="font-bold text-[#0A2540] text-sm truncate max-w-[150px]">{institutionName}</p>
                                 </div>
                              </div>
                           </div>

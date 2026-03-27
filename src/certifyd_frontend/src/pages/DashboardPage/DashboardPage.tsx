@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import QRCode from 'react-qr-code';
 import Spinner from './../../components/Spinner';
 import { useNavigate } from "react-router-dom";
 import { certifyd_backend } from '../../declarations/certifyd_backend'; 
