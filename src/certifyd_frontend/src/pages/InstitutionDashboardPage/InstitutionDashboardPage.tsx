@@ -103,12 +103,12 @@ export default function InstitutionDashboardPage() {
   const handleRevoke = async (nftId: bigint) => {
     if (!confirm('WARNING: Are you sure you want to permanently revoke this credential? This action is immutable and will lock the record globally.')) return;
     try {
-      const success = await certifyd_backend.revokeNFT(nftId, issuer);
+      const success = await (certifyd_backend as any).revokeNFT(nftId);
       if (success) {
         alert('Credential Revocation Successful. The record is now permanently frozen.');
         fetchData();
       } else {
-        alert('Revocation failed. You may lack sufficient cryptographic privileges.');
+        alert('Sovereign Access Denied: Only the original issuing institution principal can revoke this record.');
       }
     } catch (err) {
       console.error(err);
@@ -148,29 +148,37 @@ export default function InstitutionDashboardPage() {
       // Parse student name from filename: [BatchID]_[Student Name].pdf
       const namePart = file.name.replace(/\.pdf$/i, '').split('_').slice(1).join(' ');
       const studentEmail = `${namePart.toLowerCase().replace(/\s+/g, '.')}.student@certifyd.net`;
-      const reader = new FileReader();
-      await new Promise<void>((resolve) => {
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const metadata = reader.result as string;
-          const diplomaInfo = {
-            classId: batchClassId,
-            promotion: batchPromotion,
-            institution: institutionName,
-            diplomaType: batchDiplomaType,
-            studentName: namePart || file.name,
-            graduationDate: batchGradDate,
-            description: batchDescription || `${batchDiplomaType} in ${batchDept}${batchOption ? ' - ' + batchOption : ''} — ${batchPromotion}`,
-          };
-          try {
-            await certifyd_backend.mint(studentEmail, metadata, diplomaInfo);
-            successCount++;
-          } catch(err) {
-            console.error(`Failed to mint for ${namePart}:`, err);
-          }
-          resolve();
+      
+      const uploadToIPFS = async (f: File) => {
+        // FIXME: Replace this with your Pinata/Web3.Storage API call
+        // const formData = new FormData(); formData.append("file", f);
+        // const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", ...);
+        // return res.data.IpfsHash;
+        
+        // Protocol Simulation: Generating a secure deterministic CID hash
+        const buffer = await f.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return `ipfs://Qm${hashHex.slice(0, 44)}`; 
+      };
+
+      try {
+        const cid = await uploadToIPFS(file);
+        const diplomaInfo = {
+          classId: batchClassId,
+          promotion: batchPromotion,
+          institution: institutionName,
+          diplomaType: batchDiplomaType,
+          studentName: namePart || file.name,
+          graduationDate: batchGradDate,
+          description: batchDescription || `${batchDiplomaType} in ${batchDept}${batchOption ? ' - ' + batchOption : ''} — ${batchPromotion}`,
         };
-      });
+        await certifyd_backend.mint(studentEmail, cid, diplomaInfo);
+        successCount++;
+      } catch(err) {
+        console.error(`Failed to mint for ${namePart}:`, err);
+      }
     }
     setBatchMinting(false);
     alert(`Batch minting complete! ${successCount}/${batchFiles.length} credentials successfully secured on the ledger.`);

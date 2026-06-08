@@ -1,11 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlobalHeader } from "../../components/GlobalHeader";
+import { certifyd_backend } from "../../declarations/certifyd_backend";
 
 export const AboutUsPage = () => {
   const navigate = useNavigate();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [stats, setStats] = useState<{totalNFTs: bigint, totalInstitutions: bigint, totalRequests: bigint, totalVerifications: bigint} | null>(null);
+  const [institutions, setInstitutions] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchGlobalData = async () => {
+      try {
+        const [statRes, instRes] = await Promise.all([
+           certifyd_backend.getGlobalStats(),
+           certifyd_backend.getApprovedInstitutions()
+        ]);
+        setStats(statRes);
+        setInstitutions(instRes.map(i => i.username));
+      } catch (err) {
+        console.error("Failed to fetch protocol data:", err);
+      }
+    };
+    fetchGlobalData();
+  }, []);
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,22 +102,22 @@ export const AboutUsPage = () => {
          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             <div className="flex flex-col items-center">
                <div className="w-20 h-20 mb-6 bg-blue-50 rounded-2xl flex items-center justify-center text-[#0066FF] text-3xl shadow-xl">🚀</div>
-               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">33,400</h3>
+               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">{stats ? stats.totalNFTs.toString() : "..."}</h3>
                <p className="text-[10px] font-black uppercase tracking-[4px] text-gray-400">SBTs Minted</p>
             </div>
             <div className="flex flex-col items-center">
                <div className="w-20 h-20 mb-6 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-500 text-3xl shadow-xl">🎓</div>
-               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">6,000+</h3>
-               <p className="text-[10px] font-black uppercase tracking-[4px] text-gray-400">Graduates</p>
+               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">{stats ? stats.totalNFTs.toString() : "..."}</h3>
+               <p className="text-[10px] font-black uppercase tracking-[4px] text-gray-400">Certified Docs</p>
             </div>
             <div className="flex flex-col items-center">
                <div className="w-20 h-20 mb-6 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-400 text-3xl shadow-xl">🏛️</div>
-               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">340</h3>
+               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">{stats ? stats.totalInstitutions.toString() : "..."}</h3>
                <p className="text-[10px] font-black uppercase tracking-[4px] text-gray-400">Institutions</p>
             </div>
             <div className="flex flex-col items-center">
                <div className="w-20 h-20 mb-6 bg-green-50 rounded-2xl flex items-center justify-center text-green-500 text-3xl shadow-xl">🔒</div>
-               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">120k+</h3>
+               <h3 className="text-4xl font-black text-[#0A2540] mb-2 font-Clash">{stats ? stats.totalVerifications.toString() : "0"}</h3>
                <p className="text-[10px] font-black uppercase tracking-[4px] text-gray-400">Verifications</p>
             </div>
          </div>
@@ -133,11 +152,13 @@ export const AboutUsPage = () => {
       <section className="py-32 px-8 text-center max-w-6xl mx-auto">
          <h2 className="text-4xl font-black text-[#0A2540] font-Clash mb-16 tracking-tight">Consortium Partners</h2>
          <div className="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-40 grayscale pt-8">
-            {['Inpulsion', 'Logipsum', 'LOGO IPSUM', 'BOGO', 'Logipsum', 'Inpulsion', 'Logipsum', 'LOGO IPSUM', 'Logipsum', 'LOGO IPSUM'].map((partner, idx) => (
+            {institutions.length > 0 ? institutions.map((name, idx) => (
                <div key={idx} onClick={() => navigate('/university')} className="text-2xl font-black uppercase tracking-widest text-[#0A2540] hover:text-[#0066FF] hover:opacity-100 hover:grayscale-0 transition-all cursor-pointer">
-                  {partner}
+                  {name}
                </div>
-            ))}
+            )) : (
+              <div className="text-gray-300 font-bold italic">Awaiting Consortium Expansion...</div>
+            )}
          </div>
       </section>
 

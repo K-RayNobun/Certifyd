@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import asset from "../../assets/academic_hero.png";
+import institutionHero from "../../assets/institution_hero.png";
 import { GlobalHeader } from "../../components/GlobalHeader";
 
 export const Header = () => {
@@ -13,6 +14,7 @@ export const Header = () => {
       navigate(`/auth/${certId.trim()}`);
     }
   };
+  const [view, setView] = useState<'student' | 'institution'>('student');
 
   return (
     <header className="relative w-full max-w-[1600px] mx-auto pt-10 px-6 lg:px-16 flex flex-col items-center overflow-hidden min-h-[90vh] justify-center">
@@ -86,35 +88,71 @@ export const Header = () => {
         </div>
       </div>
 
-      {/* Ultra-wide Hero Visual Wrapper */}
+      {/* 2. EXPLANATORY + CALL TO START: What is Certifyd? */}
       <div className="w-full max-w-[1400px] relative mt-10">
-         <div className="card-nft p-1 shadow-none border-none bg-transparent hover:scale-[1.01] transition-all duration-1000">
-            <div className="relative bg-[#F8FAFF] rounded-[60px] p-2 md:p-16 border-[5px] border-white shadow-3xl overflow-hidden group">
-               <div className="absolute top-0 right-0 w-full h-[6px] bg-gradient-to-r from-transparent via-[#0066FF] down-to-transparent opacity-20"></div>
-               <div className="flex flex-col lg:flex-row items-center gap-20">
-                  <div className="w-full lg:w-1/2 p-4">
-                     <div className="flex items-center gap-6 mb-12">
-                        <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center text-4xl transform -rotate-3 group-hover:rotate-0 transition-transform">🎓</div>
-                        <div>
-                           <div className="pill-badge bg-green-50 text-green-600 border-none font-black text-[10px] uppercase tracking-widest mb-2 px-4 shadow-sm">Verified Legacy</div>
-                           <h3 className="text-3xl font-black text-[#0A2540]">Bachelor's in Digital Ethics</h3>
+         <div className="p-1 shadow-none border-none bg-transparent">
+            <div className="relative bg-[#F8FAFF] rounded-[60px] p-8 md:p-20 overflow-hidden group">
+               {/* Decorative background element */}
+               <div className="absolute top-0 right-0 w-full h-[6px] bg-gradient-to-r from-transparent via-[#0066FF] to-transparent opacity-20"></div>
+               
+               <div className="flex flex-col items-center text-center mb-16">
+                  <h2 className="text-4xl md:text-5xl font-black text-[#0A2540] mb-8 tracking-tighter">
+                     What is <span className="text-[#0066FF]">Certifyd?</span>
+                  </h2>
+                  
+                  {/* Toggle Switch */}
+                  <div className="flex bg-white p-2 rounded-full shadow-lg border border-blue-50/50">
+                     <button 
+                        onClick={() => setView('student')}
+                        className={`px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${view === 'student' ? 'bg-[#0066FF] text-white shadow-lg' : 'text-gray-400 hover:text-[#0A2540]'}`}
+                     >
+                        For Students
+                     </button>
+                     <button 
+                        onClick={() => setView('institution')}
+                        className={`px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${view === 'institution' ? 'bg-[#0066FF] text-white shadow-lg' : 'text-gray-400 hover:text-[#0A2540]'}`}
+                     >
+                        For Institutions
+                     </button>
+                  </div>
+               </div>
+
+               <div className="transition-all duration-500 min-h-[400px]">
+                  {view === 'student' ? (
+                     <div className="flex flex-col lg:flex-row items-center gap-20 animate-fade-in">
+                        <div className="w-full lg:w-1/2 text-left">
+                           <div className="pill-badge bg-blue-50 text-[#0066FF] border-none font-black text-[10px] uppercase tracking-widest mb-6 px-4">Student Perspective</div>
+                           <h3 className="text-4xl md:text-5xl font-black text-[#0A2540] mb-8 leading-tight tracking-tighter">Your Career, <br/>Decentralized.</h3>
+                           <p className="text-xl text-gray-500 font-medium mb-12 leading-relaxed">
+                              Certifyd transforms your hard-earned credentials into secure, verifiable digital assets. Built on the Internet Computer, your achievements are globally recognized, tamper-proof, and entirely under your control.
+                           </p>
+                           <button onClick={() => navigate('/signup')} className="btn-primary !py-5 !px-12">Secure My Legacy &rarr;</button>
+                        </div>
+                        <div className="w-full lg:w-1/2 flex justify-center">
+                           <div className="relative">
+                              <div className="absolute inset-0 bg-[#0066FF] blur-[100px] opacity-10 rounded-full"></div>
+                              <img src={asset} alt="Student Cert" className="w-[100%] max-w-sm object-contain filter drop-shadow-2xl animate-slow-float" />
+                           </div>
                         </div>
                      </div>
-                     <div className="space-y-6 mb-12">
-                        <div className="flex justify-between items-center border-b border-blue-100 pb-4">
-                           <span className="text-xs font-black uppercase tracking-widest text-gray-400">Issuer</span>
-                           <span className="text-sm font-black text-[#0A2540]">University of Oxford</span>
+                  ) : (
+                     <div className="flex flex-col lg:flex-row items-center gap-20 animate-fade-in">
+                        <div className="w-full lg:w-1/2 text-left">
+                           <div className="pill-badge bg-green-50 text-green-600 border-none font-black text-[10px] uppercase tracking-widest mb-6 px-4">Institutional Perspective</div>
+                           <h3 className="text-4xl md:text-5xl font-black text-[#0A2540] mb-8 leading-tight tracking-tighter">The Future of <br/>Academic Trust.</h3>
+                           <p className="text-xl text-gray-500 font-medium mb-12 leading-relaxed">
+                              Streamline credentialing and eliminate fraud. Certifyd provides a robust infrastructure for schools and organizations to issue, manage, and verify diplomas with mathematical certainty and zero maintenance.
+                           </p>
+                           <button onClick={() => navigate('/university')} className="btn-primary !py-5 !px-12 !bg-[#0A2540]">Partner With Us &rarr;</button>
                         </div>
-                        <div className="flex justify-between items-center border-b border-blue-100 pb-4">
-                           <span className="text-xs font-black uppercase tracking-widest text-gray-400">Verified at</span>
-                           <span className="text-sm font-black text-[#0066FF]">2026-03-27T11:35</span>
+                        <div className="w-full lg:w-1/2 flex justify-center">
+                           <div className="relative">
+                              <div className="absolute inset-0 bg-[#0A2540] blur-[100px] opacity-10 rounded-full"></div>
+                              <img src={institutionHero} alt="Institution Trust" className="w-[100%] max-w-sm object-contain filter drop-shadow-2xl animate-slow-float" />
+                           </div>
                         </div>
                      </div>
-                      <button onClick={() => navigate('/signup')} className="pill-badge bg-black text-white px-10 py-4 !h-auto border-none shadow-xl group-hover:bg-[#0066FF] transition-all">Get Your Proof →</button>
-                  </div>
-                  <div className="w-full lg:w-1/2 flex justify-center">
-                     <img src={asset} alt="Cert" className="w-[100%] max-w-sm object-contain filter drop-shadow-[0_20px_40px_rgba(0,102,255,0.2)] group-hover:scale-110 transition-transform duration-1000" />
-                  </div>
+                  )}
                </div>
             </div>
          </div>

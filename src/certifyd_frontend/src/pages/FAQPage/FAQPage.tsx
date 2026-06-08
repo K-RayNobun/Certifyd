@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GlobalHeader } from "../../components/GlobalHeader";
 
 type FAQItem = {
@@ -62,11 +61,10 @@ const faqData: FAQItem[] = [
 ];
 
 export const FAQPage = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<FAQItem["category"]>("General");
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [hasCopied, setHasCopied] = useState<number | null>(null);
+   const [activeTab, setActiveTab] = useState<FAQItem["category"]>("General");
+   const [openIndex, setOpenIndex] = useState<number | null>(0);
+   const [searchQuery, setSearchQuery] = useState("");
+   const [hasCopied, setHasCopied] = useState<number | null>(null);
 
   const filteredFaqs = faqData.filter(f => 
     (searchQuery === "" || f.question.toLowerCase().includes(searchQuery.toLowerCase()) || f.answer.toLowerCase().includes(searchQuery.toLowerCase())) &&
@@ -201,7 +199,7 @@ export const FAQPage = () => {
               )}
            </div>
         </div>
-      </aside>
+      </main>
 
       {/* 4. FOOTER CTA */}
       <section className="max-w-7xl mx-auto px-6 py-40">

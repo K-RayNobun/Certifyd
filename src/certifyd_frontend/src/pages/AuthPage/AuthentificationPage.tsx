@@ -1,44 +1,27 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Spinner from './../../components/Spinner';
 import { certifyd_backend } from "../../declarations/certifyd_backend";
 
-interface DiplomaData {
-  fullName: string;
-  institution: string;
-  diplomaType: string;
-  description: string;
-  fileData: string;
-  isRevoked: boolean;
-}
-
 const AuthenticationPage = () => {
-  const navigate = useNavigate();
-  const [data, setData] = useState<DiplomaData | null>(null);
+  const { id } = useParams();
+  const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Privacy Lock
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [verifyName, setVerifyName] = useState("");
   const [verifyError, setVerifyError] = useState("");
-  
-  const { id } = useParams();
 
   useEffect(() => {
     const fetchStatus = async () => {
+      if (!id) return;
       try {
-        if (!id) return;
+        setLoading(true);
         const nftId = BigInt(id);
-        const result = await certifyd_backend.getNFT(nftId);
+        const result = await (certifyd_backend as any).getNFT(nftId);
         if (result && result.length > 0) {
-          setData({
-            fullName: result[0].diplomaInfo.studentName,
-            institution: result[0].diplomaInfo.institution,
-            diplomaType: result[0].diplomaInfo.diplomaType,
-            description: result[0].diplomaInfo.description,
-            fileData: result[0].metadata,
-            isRevoked: result[0].isRevoked
-          });
+          setData(result[0]);
         }
       } catch (error) {
         console.log('Error fetching data: ' + error)
@@ -49,13 +32,23 @@ const AuthenticationPage = () => {
     fetchStatus();
   }, [id]);
 
-  const handleUnlock = () => {
-    if (!data) return;
-    if (verifyName.trim().toLowerCase() === data.fullName.toLowerCase()) {
-      setIsUnlocked(true);
-      setVerifyError("");
-    } else {
-      setVerifyError("Name mismatch: Access securely denied by protocol consensus.");
+  const handleUnlock = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const fullData = await (certifyd_backend as any).verifyDiploma(BigInt(id), verifyName.trim());
+      if (fullData && fullData.length > 0) {
+        setIsUnlocked(true);
+        setData(fullData[0]);
+        setVerifyError("");
+      } else {
+        setVerifyError("Cipher Failed: Access denied by protocol consensus.");
+      }
+    } catch (err) {
+      console.error(err);
+      setVerifyError("Network Error: Could not reach verification nodes.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,58 +56,41 @@ const AuthenticationPage = () => {
     <div className="min-h-screen bg-white font-Outfit selection:bg-[#0066FF] selection:text-white flex flex-col lg:flex-row overflow-hidden">
       
       {/* 1. LEFT SIDE PANEL (Visual Validator) */}
-      <div className="lg:w-1/2 relative flex flex-col justify-between p-12 lg:p-24 overflow-hidden order-2 lg:order-1 bg-[#0A2540]">
+      <div className="lg:w-1/2 bg-[#0A2540] p-10 md:p-20 flex flex-col justify-between relative overflow-hidden h-screen order-2 lg:order-1">
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0066FF] blur-[150px] opacity-20 rounded-full animate-pulse"></div>
          
-         {/* Dynamic Protocol Environment */}
-         <div className="absolute top-0 right-0 w-full h-full bg-[#0066FF] blur-[250px] opacity-20 rounded-full animate-pulse"></div>
-         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-         
-         {/* Top Branding Nav */}
-         <div className="relative z-10 flex justify-between items-center">
-            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => navigate('/')}>
-               <div className="w-14 h-14 rounded-3xl bg-[#0066FF] flex items-center justify-center font-black text-2xl shadow-[0_0_40px_rgba(0,102,255,0.6)] text-white group-hover:scale-105 transition-transform">C</div>
-               <span className="text-3xl font-black tracking-tighter text-white">Certifyd.</span>
+         <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-20 cursor-pointer" onClick={() => window.location.href='/'}>
+               <div className="w-12 h-12 rounded-2xl bg-[#0066FF] flex items-center justify-center font-black text-xl shadow-[0_0_30px_rgba(0,102,255,0.4)] text-white">C</div>
+               <span className="text-2xl font-black tracking-tighter text-white">Certifyd.</span>
             </div>
-            {data && !data.isRevoked && (
-               <div className="inline-flex items-center gap-3 px-6 py-2.5 bg-green-500/20 border border-green-500/30 rounded-full text-green-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_#4ade80] animate-pulse"></span>
-                  <span className="text-[10px] font-black uppercase tracking-[4px]">Ledger Active</span>
-               </div>
-            )}
+
+            <div className="space-y-6">
+               <span className="px-5 py-2 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-black tracking-[4px] uppercase border border-blue-500/30">Protocol Validator</span>
+               <h1 className="text-5xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter font-Clash">
+                  Authenticity <br /> <span className="text-[#00C6FF]">Check.</span>
+               </h1>
+               <p className="text-blue-100/40 font-medium text-lg max-w-md leading-relaxed">
+                  Real-time cryptographic verification of institutional soulbound credentials. Anchored on the Internet Computer Protocol.
+               </p>
+            </div>
          </div>
 
-         {/* Hero Graphic State */}
-         <div className="relative z-10 flex-1 flex flex-col justify-center max-w-lg mt-20">
-            {loading ? (
-               <div className="space-y-6">
-                  <p className="font-black text-[12px] uppercase tracking-[8px] text-[#00C6FF]">Protocol Verification</p>
-                  <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] font-Clash tracking-tighter">Scanning <br /> Ledger.</h2>
-                  <p className="text-blue-100/50 text-xl font-medium leading-relaxed mt-6">Connecting to the Internet Computer to independently verify cryptographic proofs.</p>
-               </div>
-            ) : !data ? (
-               <div className="space-y-6">
-                  <span className="text-7xl block mb-6 opacity-40">⚠️</span>
-                  <p className="font-black text-[12px] uppercase tracking-[8px] text-red-400">404 Exception</p>
-                  <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] font-Clash tracking-tighter">Null <br /> Vector.</h2>
-               </div>
-            ) : data.isRevoked ? (
-               <div className="space-y-6">
-                  <p className="font-black text-[12px] uppercase tracking-[8px] text-red-500">Integrity Compromised</p>
-                  <h2 className="text-6xl md:text-8xl font-black text-red-500 leading-[0.9] font-Clash tracking-tighter drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]">Revoked.</h2>
-                  <p className="text-white/60 text-xl font-medium leading-relaxed mt-6">This credential was explicitly invalidated by the issuing consortium entity.</p>
-               </div>
-            ) : (
-               <div className="space-y-6">
-                  <p className="font-black text-[12px] uppercase tracking-[8px] text-[#00C6FF]">Validation Successful</p>
-                  <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] font-Clash tracking-tighter">Trust <br /> <span className="text-[#00C6FF]">Verified.</span></h2>
-                  
-                  <div className="p-8 mt-12 bg-white/5 border border-white/10 rounded-[32px] backdrop-blur-md shadow-2xl">
-                     <p className="text-[10px] uppercase tracking-[4px] text-blue-300 font-black mb-2 flex items-center gap-3">
-                        <span className="text-lg">🛡️</span> Zero-Knowledge Core
-                     </p>
-                     <p className="text-blue-100/60 font-medium leading-relaxed">
-                        This document is a Soulbound Token (SBT) permanently recorded on the blockchain. It cannot be forged, transferred, or deleted by unauthorized nodes.
-                     </p>
+         <div className="relative z-10">
+            {data && (
+               <div className="p-8 bg-white/5 border border-white/10 rounded-[40px] backdrop-blur-xl shadow-4xl group">
+                  <div className="flex justify-between items-start mb-10">
+                     <div className="w-16 h-16 rounded-[24px] bg-white text-[#0A2540] flex items-center justify-center text-3xl shadow-xl">🛡️</div>
+                     <span className={`pill-badge !py-2 !px-5 text-[9px] ${data.isRevoked ? 'bg-red-500' : 'bg-green-500'}`}>
+                        {data.isRevoked ? 'REVOKED' : 'SECURE'}
+                     </span>
+                  </div>
+                  <p className="text-[10px] font-black text-blue-300 opacity-40 uppercase tracking-[4px] mb-2">Internal Global ID</p>
+                  <p className="text-sm font-bold text-white truncate mb-8 select-all">{id}</p>
+                  <div className="h-[1px] w-full bg-white/10 mb-8"></div>
+                  <div className="flex justify-between items-center text-[10px] font-black text-white uppercase tracking-[3px]">
+                     <span className="opacity-40">Network Status</span>
+                     <span className="text-green-400 animate-pulse">Live Consistency</span>
                   </div>
                </div>
             )}
@@ -123,7 +99,7 @@ const AuthenticationPage = () => {
          {/* Legal Trace */}
          <div className="relative z-10 pt-10 border-t border-white/10 mt-20 flex justify-between items-center text-white/30 text-[9px] uppercase font-black tracking-[4px]">
             <span>NODE ID: {id?.slice(0, 12) || 'UNKNOWN'}...</span>
-            <span>Certifyd Network</span>
+            <span>VALIDATIONS: {data?.views?.toString() || '0'}</span>
          </div>
       </div>
 
@@ -147,7 +123,7 @@ const AuthenticationPage = () => {
                   <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-8 text-red-600 font-black">✖</div>
                   <h1 className="text-4xl font-black text-red-600 tracking-tighter mb-4 font-Clash">Access Frozen</h1>
                   <p className="text-red-900/60 font-medium text-lg leading-relaxed">
-                     The issuing university ({data.institution}) has permanently revoked this certificate's authenticity layer.
+                     The issuing university ({data.diplomaInfo.institution}) has permanently revoked this certificate's authenticity layer.
                   </p>
                </div>
             ) : !isUnlocked ? (
@@ -193,9 +169,9 @@ const AuthenticationPage = () => {
                <div className="animate-fade-in space-y-12">
                   <div className="text-center mb-16">
                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[6px] mb-4">Official Degree Type</p>
-                     <h2 className="text-4xl md:text-5xl font-black text-[#0A2540] tracking-tighter mb-4 font-Clash leading-[1.1]">{data.diplomaType}</h2>
+                     <h2 className="text-4xl md:text-5xl font-black text-[#0A2540] tracking-tighter mb-4 font-Clash leading-[1.1]">{data.diplomaInfo.diplomaType}</h2>
                      <p className="text-2xl font-black text-[#0066FF] tracking-wide inline-flex items-center gap-3 bg-blue-50 py-3 px-8 rounded-full">
-                        {data.fullName}
+                        {data.diplomaInfo.studentName}
                      </p>
                   </div>
 
@@ -204,7 +180,7 @@ const AuthenticationPage = () => {
                         <div className="w-16 h-16 rounded-[24px] bg-[#0A2540] text-white flex items-center justify-center font-black text-2xl shadow-lg">🏛️</div>
                         <div>
                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[4px] mb-1">Minting Authority</p>
-                           <p className="text-xl font-black text-[#0A2540]">{data.institution}</p>
+                           <p className="text-xl font-black text-[#0A2540]">{data.diplomaInfo.institution}</p>
                         </div>
                      </div>
                   </div>
@@ -212,33 +188,40 @@ const AuthenticationPage = () => {
                   <div className="bg-white border-2 border-gray-100 p-10 rounded-[32px] shadow-sm">
                      <p className="text-[10px] uppercase tracking-[4px] text-gray-400 font-black mb-4">Cryptographic Details</p>
                      <p className="text-[#0A2540]/60 font-medium leading-relaxed text-lg">
-                        {data.description}
+                        {data.diplomaInfo.description}
                      </p>
                   </div>
 
                   <div className="pt-2">
                      <p className="text-center text-[10px] uppercase tracking-[4px] text-[#0066FF] font-black mb-6">Original File Hash Matched</p>
-                     {data.fileData && data.fileData.startsWith('data:image') && (
+                     {data.metadata && data.metadata.startsWith('data:image') && (
                         <div className="w-full border-4 border-white rounded-[40px] overflow-hidden shadow-2xl shadow-blue-500/10 mb-8 mx-auto hover:rotate-2 transition-transform duration-700 bg-gray-100">
-                           <img src={data.fileData} alt="Record" className="w-full h-auto object-contain max-h-[400px]" />
+                           <img src={data.metadata} alt="Record" className="w-full h-auto object-contain max-h-[400px]" />
                         </div>
                      )}
-                     {data.fileData && data.fileData.startsWith('data:application/pdf') && (
-                        <a href={data.fileData} download={`Secure_Record_${data.fullName}.pdf`} className="block w-full py-8 text-center bg-[#FF5C8A] hover:bg-[#E04B76] text-white rounded-[32px] font-black tracking-[6px] uppercase transition-all shadow-4xl shadow-pink-500/30 active:scale-95 text-xs">
+                     {data.metadata && data.metadata.startsWith('data:application/pdf') && (
+                        <a href={data.metadata} download={`Secure_Record_${data.diplomaInfo.studentName}.pdf`} className="block w-full py-8 text-center bg-[#FF5C8A] hover:bg-[#E04B76] text-white rounded-[32px] font-black tracking-[6px] uppercase transition-all shadow-4xl shadow-pink-500/30 active:scale-95 text-xs">
                            Download Original PDF
                         </a>
-                     )}
-                     {!data.fileData.startsWith('data:image') && !data.fileData.startsWith('data:application/pdf') && (
-                        <button onClick={() => window.open(data.fileData)} className="w-full py-8 text-center bg-[#FF5C8A] hover:bg-[#E04B76] text-white rounded-[32px] font-black tracking-[6px] uppercase transition-all shadow-4xl shadow-pink-500/30 active:scale-95 text-xs">
-                           View Cloud Object
-                        </button>
-                     )}
+                      )}
+                      {data.metadata && !data.metadata.startsWith('data:image') && !data.metadata.startsWith('data:application/pdf') && (
+                         <button 
+                           onClick={() => {
+                             const url = data.metadata.startsWith('ipfs://') 
+                               ? `https://gateway.pinata.cloud/ipfs/${data.metadata.replace('ipfs://', '')}` 
+                               : data.metadata;
+                             window.open(url);
+                           }} 
+                           className="w-full py-8 text-center bg-[#FF5C8A] hover:bg-[#E04B76] text-white rounded-[32px] font-black tracking-[6px] uppercase transition-all shadow-4xl shadow-pink-500/30 active:scale-95 text-xs"
+                         >
+                            {data.metadata.startsWith('ipfs://') ? 'Unlock Gateway Asset' : 'View Cloud Object'}
+                         </button>
+                      )}
                   </div>
                </div>
             )}
          </div>
       </div>
-
     </div>
   );
 };

@@ -1,11 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import asset from "../../assets/academic_hero.png";
+import { certifyd_backend } from "../../declarations/certifyd_backend";
 
 export const Layout = () => {
   const navigate = useNavigate();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [stats, setStats] = useState<{totalNFTs: bigint, totalInstitutions: bigint, totalRequests: bigint, totalVerifications: bigint} | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const result = await certifyd_backend.getGlobalStats();
+        setStats(result);
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,12 +214,12 @@ export const Layout = () => {
             <div className="flex items-center gap-16 bg-white/5 border border-white/5 px-16 py-12 rounded-[60px] backdrop-blur-3xl shadow-4xl">
                <div>
                   <p className="text-[11px] font-black text-blue-300 opacity-40 uppercase tracking-[4px] mb-4 text-center md:text-left">Entities Registered</p>
-                  <p className="text-6xl font-black text-[#00C6FF] tracking-tighter">1,200+</p>
+                  <p className="text-6xl font-black text-[#00C6FF] tracking-tighter">{stats ? stats.totalInstitutions.toString() : "..."}</p>
                </div>
                <div className="w-[1px] h-20 bg-white/10 hidden md:block"></div>
                <div className="hidden md:block">
                   <p className="text-[11px] font-black text-blue-300 opacity-40 uppercase tracking-[4px] mb-4">Total Minted</p>
-                  <p className="text-6xl font-black text-white tracking-tighter">1.8M</p>
+                  <p className="text-6xl font-black text-white tracking-tighter">{stats ? stats.totalNFTs.toString() : "..."}</p>
                </div>
             </div>
          </div>

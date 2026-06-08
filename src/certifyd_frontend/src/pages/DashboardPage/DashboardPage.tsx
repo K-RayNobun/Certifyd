@@ -7,6 +7,8 @@ interface NFT {
   id: bigint;
   metadata: string;
   isRevoked: boolean;
+  views: bigint;
+  isPublic: boolean;
   diplomaInfo: {
     diplomaType: string;
     description: string;
@@ -50,17 +52,32 @@ const DashboardPage = () => {
     fetchData();
   }, [owner]);
 
+  const [identities, setIdentities] = useState<{github: string | null, wallet: string | null, twitter: string | null} | null>(null);
+  const [protocolFee, setProtocolFee] = useState<string>("...");
+
   const fetchData = async () => {
+    if (!owner) return;
     try {
       setLoading(true);
-      const [nftResult, reqResult] = await Promise.all([
+      const [res, reqRes, userRes, feeRes] = await Promise.all([
         certifyd_backend.getNFTsByOwner(owner),
-        certifyd_backend.getStudentRequests(owner)
+        certifyd_backend.getStudentRequests(owner),
+        certifyd_backend.getUser(owner),
+        certifyd_backend.getProtocolFee()
       ]);
-      setNfts(nftResult);
-      setRequests(reqResult);
-    } catch(error) {
-      console.log('Error fetching data: ', error)
+      setNfts(res);
+      setRequests(reqRes);
+      setProtocolFee(feeRes);
+      if (userRes && userRes.length > 0) {
+        const idMap = userRes[0].identities[0];
+        setIdentities({
+          github: idMap ? idMap.github[0] || null : null,
+          wallet: idMap ? idMap.wallet[0] || null : null,
+          twitter: idMap ? idMap.twitter[0] || null : null
+        });
+      }
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -118,12 +135,32 @@ const DashboardPage = () => {
 
                <div className="pt-6 mt-6 border-t border-white/5">
                   <p className="text-[9px] font-black text-blue-300 opacity-40 uppercase tracking-[4px] mb-4">Identity Aggregation</p>
-                  <button onClick={() => alert('Linking GitHub Identity Core...')} className="w-full mb-3 text-left px-6 py-4 rounded-xl bg-[#24292e] flex items-center gap-4 font-black text-[10px] tracking-[3px] uppercase hover:bg-black transition-all shadow-md">
-                     <span className="text-sm">🐙</span> Link GitHub
-                  </button>
-                  <button onClick={() => alert('Invoking Web3 Provider Layer...')} className="w-full text-left px-6 py-4 rounded-xl bg-orange-500/20 text-orange-400 flex items-center gap-4 font-black text-[10px] tracking-[3px] uppercase hover:bg-orange-500/30 transition-all border border-orange-500/20">
-                     <span className="text-sm">🦊</span> Link Metamask
-                  </button>
+                  <button 
+                     onClick={async () => {
+                        const gh = prompt("Enter GitHub Username to Link:", identities?.github || "");
+                        if (gh !== null) {
+                           await (certifyd_backend as any).linkIdentity([gh], [], []);
+                           fetchData();
+                        }
+                     }} 
+                     className={`w-full mb-3 text-left px-6 py-4 rounded-xl flex items-center justify-between gap-4 font-black text-[10px] tracking-[3px] uppercase transition-all shadow-md ${identities?.github ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-[#24292e] hover:bg-black'}`}
+                   >
+                      <span className="flex items-center gap-4"><span className="text-sm">🐙</span> {identities?.github || 'Link GitHub'}</span>
+                      {identities?.github && <span className="text-[8px] bg-green-500/20 px-2 py-1 rounded-md">Linked</span>}
+                   </button>
+                   <button 
+                     onClick={async () => {
+                        const wa = prompt("Enter Web3 Wallet Address:", identities?.wallet || "");
+                        if (wa !== null) {
+                           await (certifyd_backend as any).linkIdentity([], [wa], []);
+                           fetchData();
+                        }
+                     }} 
+                     className={`w-full text-left px-6 py-4 rounded-xl flex items-center justify-between gap-4 font-black text-[10px] tracking-[3px] uppercase transition-all border shadow-md ${identities?.wallet ? 'bg-orange-500/20 text-orange-400 border-orange-500/20 shadow-orange-500/5' : 'bg-white/5 text-white/50 border-white/5 hover:bg-white/10'}`}
+                   >
+                      <span className="flex items-center gap-4"><span className="text-sm">🦊</span> {identities?.wallet ? `${identities.wallet.slice(0, 6)}...${identities.wallet.slice(-4)}` : 'Link Metamask'}</span>
+                      {identities?.wallet && <span className="text-[8px] bg-orange-500/20 px-2 py-1 rounded-md text-orange-400">Mainnet</span>}
+                   </button>
                </div>
             </div>
          </div>
@@ -227,7 +264,7 @@ const DashboardPage = () => {
                                      <p className="text-[10px] uppercase tracking-[3px] text-gray-400 font-black mb-2">Network Fee</p>
                                      <div className="flex items-center gap-3">
                                         <span className="text-xl">♦</span>
-                                        <span className="text-3xl font-black text-[#0A2540] font-Clash">0.00 ICP</span>
+                                        <span className="text-3xl font-black text-[#0A2540] font-Clash">{protocolFee}</span>
                                      </div>
                                   </div>
                                   <div className="p-8 bg-green-50 rounded-[32px] border-2 border-green-100 flex flex-col justify-center shadow-inner">
@@ -235,16 +272,30 @@ const DashboardPage = () => {
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                                         Validation Analytics 
                                      </p>
-                                     <p className="text-md font-black text-green-700 font-Clash"><span className="text-3xl lg:text-4xl text-green-600">{Math.floor(Math.random() * 20) + 1}</span> Views</p>
+                                     <p className="text-md font-black text-green-700 font-Clash"><span className="text-3xl lg:text-4xl text-green-600">{selectedItem.data.views.toString()}</span> Views</p>
                                   </div>
                                </div>
 
-                               <div className="flex items-center justify-between p-6 bg-white border-2 border-blue-50/50 rounded-[24px] shadow-sm mb-12 group cursor-pointer" onClick={() => (document.getElementById('publicToggle') as any).classList.toggle('justify-end')}>
+                               <div className="flex items-center justify-between p-6 bg-white border-2 border-blue-50/50 rounded-[24px] shadow-sm mb-12 group cursor-pointer" onClick={async () => {
+                                  const newStatus = !selectedItem.data.isPublic;
+                                  try {
+                                    await certifyd_backend.setNFTPublic(selectedItem.data.id, newStatus);
+                                    // Update local state for immediate feedback
+                                    setSelectedItem({
+                                      ...selectedItem,
+                                      data: { ...selectedItem.data, isPublic: newStatus }
+                                    });
+                                    // Fetch all again for consistency
+                                    fetchData();
+                                  } catch (err) {
+                                    alert("Consensus Failure: Could not update visibility.");
+                                  }
+                                }}>
                                   <div>
                                      <p className="text-sm font-black text-[#0A2540] tracking-tight">Public Verification Vault</p>
                                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Allow recruiters to cryptographically verify</p>
                                   </div>
-                                  <div id="publicToggle" className="w-14 h-8 bg-green-400 rounded-full flex items-center p-1 transition-all justify-end shadow-inner">
+                                  <div className={`w-14 h-8 ${selectedItem.data.isPublic ? 'bg-green-400' : 'bg-gray-200'} rounded-full flex items-center p-1 transition-all ${selectedItem.data.isPublic ? 'justify-end' : 'justify-start'} shadow-inner`}>
                                      <div className="w-6 h-6 bg-white rounded-full shadow-md"></div>
                                   </div>
                                </div>
